@@ -11,7 +11,7 @@ Every version tag will be signed with [my GPG key](http://pool.sks-keyservers.ne
 
 ## Dependencies
 
-`Package.json` specifies the dependencies of Libstr: where to get them, and what version to use. I've developed a tool called [Puck](https://gitorious.org/mcinglis/puck) that will parse such a `Package.json`, download the specified repositories, check out the specified version, and, if the dependency has its own `Package.json`, repeat that process for *its* dependencies. With `puck` on your PATH, in the directory of Libstr:
+`Package.json` specifies the dependencies of Libstr: where to get them, and what version to use. I've developed a tool called [Puck](https://bitbucket.org/mcinglis/puck) that will parse such a `Package.json`, download the specified repositories, check out the specified version, and, if the dependency has its own `Package.json`, repeat that process for *its* dependencies. With `puck` on your PATH, in the directory of Libstr:
 
 ``` sh
 $ puck update
@@ -23,7 +23,7 @@ There's nothing magic to what Puck does, so if you would prefer, you can set up 
 
 ## Collaboration
 
-Libstr is available at [Gitorious](https://gitorious.org/mcinglis/libstr), [Bitbucket](https://bitbucket.org/mcinglis/libstr), and [GitHub](https://github.com/mcinglis/libstr).
+Libstr is available at [Bitbucket](https://bitbucket.org/mcinglis/libstr) and [GitHub](https://github.com/mcinglis/libstr).
 
 Questions, discussion, bug reports and feature requests are welcome at [the GitHub issue tracker](https://github.com/mcinglis/libstr/issues), or via [emails](mailto:me@minglis.id.au).
 
