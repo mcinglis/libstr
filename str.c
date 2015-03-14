@@ -19,13 +19,51 @@
 
 #include "str.h"
 
-#include <limits.h>
+#include <ctype.h>
+#include <errno.h>
 
 #include <libtypes/types.h>
 #include <libmacro/assert.h>
+#include <libmacro/compare.h>
 #include <libmacro/minmax.h>
-#include <libbase/char.h>
-#include <libmaybe/def/maybe-size.h>
+
+
+static
+ord
+char_compare( char const x,
+              char const y )
+{
+    return COMPARE( x, y );
+}
+
+
+static
+bool
+char_equal( char const x,
+            char const y )
+{
+    return x == y;
+}
+
+
+static
+ord
+char_compare_i( char const x,
+                char const y )
+{
+    return COMPARE( toupper( x ), toupper( y ) );
+}
+
+
+static
+bool
+char_equal_i( char const x,
+              char const y )
+{
+    return toupper( x ) == toupper( y );
+}
+
+
 
 
 char const *
@@ -56,9 +94,7 @@ str__size(
 {
     ASSERT( xs != NULL );
 
-    size_t const len = str__length( xs );
-    ASSERT( len != SIZE_MAX );
-    return len + 1;
+    return str__length( xs ) + 1;
 }
 
 
@@ -124,48 +160,16 @@ str__last(
 }
 
 
-bool
-str__any(
-        char const * const xs,
-        bool ( * const p )( char ) )
-{
-    ASSERT( xs != NULL, p != NULL );
-
-    for ( size_t i = 0; xs[ i ] != '\0'; i++ ) {
-        if ( p( xs[ i ] ) ) {
-            return true;
-        }
-    }
-    return false;
-}
-
-
-bool
-str__all(
-        char const * const xs,
-        bool ( * const p )( char ) )
-{
-    ASSERT( xs != NULL, p != NULL );
-
-    for ( size_t i = 0; xs[ i ] != '\0'; i++ ) {
-        if ( !p( xs[ i ] ) ) {
-            return false;
-        }
-    }
-    return true;
-}
-
-
 size_t
 str__count(
         char const * const xs,
-        bool ( * const p )( char ) )
+        bool ( * const f )( char ) )
 {
-    ASSERT( xs != NULL, p != NULL );
+    ASSERT( xs != NULL, f != NULL );
 
     size_t count = 0;
     for ( size_t i = 0; xs[ i ] != '\0'; i++ ) {
-        if ( p( xs[ i ] ) ) {
+        if ( f( xs[ i ] ) ) {
             count++;
         }
     }
@@ -176,12 +180,12 @@ str__count(
 size_t
 str__count_first(
         char const * const xs,
-        bool ( * const p )( char ) )
+        bool ( * const f )( char ) )
 {
-    ASSERT( xs != NULL, p != NULL );
+    ASSERT( xs != NULL, f != NULL );
 
     size_t count = 0;
-    while ( xs[ count ] != '\0' && p( xs[ count ] ) ) {
+    while ( xs[ count ] != '\0' && f( xs[ count ] ) ) {
         count++;
     }
     return count;
@@ -191,13 +195,13 @@ str__count_first(
 size_t
 str__count_last(
         char const * const xs,
-        bool ( * const p )( char ) )
+        bool ( * const f )( char ) )
 {
-    ASSERT( xs != NULL, p != NULL );
+    ASSERT( xs != NULL, f != NULL );
 
     size_t const len = str__length( xs );
     size_t count = 0;
-    while ( count < len && p( xs[ len - count - 1 ] ) ) {
+    while ( count < len && f( xs[ len - count - 1 ] ) ) {
         count++;
     }
     return count;
@@ -253,11 +257,11 @@ str__take_end_3(
 char const *
 str__take_end_while(
         char const * const xs,
-        bool ( * const p )( char ) )
+        bool ( * const f )( char ) )
 {
-    ASSERT( xs != NULL, p != NULL );
+    ASSERT( xs != NULL, f != NULL );
 
-    return str__take_end( xs, str__count_last( xs, p ) );
+    return str__take_end( xs, str__count_last( xs, f ) );
 }
 
 
@@ -305,11 +309,294 @@ str__drop_3(
 char const *
 str__drop_while(
         char const * const xs,
-        bool ( * const p )( char ) )
+        bool ( * const f )( char ) )
 {
-    ASSERT( xs != NULL, p != NULL );
+    ASSERT( xs != NULL, f != NULL );
 
-    return str__drop( xs, str__count_first( xs, p ) );
+    return str__drop( xs, str__count_first( xs, f ) );
+}
+
+
+char const *
+str__find(
+        char const * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    Maybe_size const mi = str__find_index( xs, f );
+    return mi.nothing ? NULL : xs + mi.value;
+}
+
+
+char const *
+str__find_not(
+        char const * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    Maybe_size const mi = str__find_index_not( xs, f );
+    return mi.nothing ? NULL : xs + mi.value;
+}
+
+
+char const *
+str__find_last(
+        char const * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    Maybe_size const mi = str__find_last_index( xs, f );
+    return mi.nothing ? NULL : xs + mi.value;
+}
+
+
+char const *
+str__find_last_not(
+        char const * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    Maybe_size const mi = str__find_last_index_not( xs, f );
+    return mi.nothing ? NULL : xs + mi.value;
+}
+
+
+static
+Maybe_size
+find_index( char const * const xs,
+            bool ( * const f )( char ),
+            bool const result )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    for ( size_t i = 0; xs[ i ] != '\0'; i++ ) {
+        if ( f( xs[ i ] ) == result ) {
+            return ( Maybe_size ){ .value = i };
+        }
+    }
+    return ( Maybe_size ){ .nothing = true };
+}
+
+
+Maybe_size
+str__find_index(
+        char const * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return find_index( xs, f, true );
+}
+
+
+Maybe_size
+str__find_index_not(
+        char const * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return find_index( xs, f, false );
+}
+
+
+static
+Maybe_size
+find_last_index( char const * const xs,
+                 bool ( * const f )( char ),
+                 bool const result )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    for ( size_t i = str__length( xs ); i > 0; i-- ) {
+        size_t const ix = i - 1;
+        if ( f( xs[ ix ] ) == result ) {
+            return ( Maybe_size ){ .value = ix };
+        }
+    }
+    return ( Maybe_size ){ .nothing = true };
+}
+
+
+Maybe_size
+str__find_last_index(
+        char const * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return find_last_index( xs, f, true );
+}
+
+
+Maybe_size
+str__find_last_index_not(
+        char const * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return find_last_index( xs, f, false );
+}
+
+
+bool
+str__any(
+        char const * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return str__find( xs, f ) != NULL;
+}
+
+
+bool
+str__all(
+        char const * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return str__find_not( xs, f ) == NULL;
+}
+
+
+bool
+str__only_one(
+        char const * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    char const * const first = str__find( xs, f );
+    if ( first == NULL ) {
+        return false;
+    } else {
+        return first == str__find_last( xs, f );
+    }
+}
+
+
+bool
+str__only_one_not(
+        char const * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    char const * const first = str__find_not( xs, f );
+    if ( first == NULL ) {
+        return false;
+    } else {
+        return first == str__find_last_not( xs, f );
+    }
+}
+
+
+char
+str__foldl(
+        char const * const xs,
+        char const init,
+        char ( * const f )( char acc, char x ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    char acc = init;
+    for ( size_t i = 0; xs[ i ] != '\0'; i++ ) {
+        acc = f( acc, xs[ i ] );
+    }
+    return acc;
+}
+
+
+char
+str__foldl1(
+        char const * const xs,
+        char ( * const f )( char acc, char x ) )
+{
+    ASSERT( xs != NULL, f != NULL, str__length( xs ) > 0 );
+
+    return str__foldl( xs + 1, xs[ 0 ], f );
+}
+
+
+char
+str__foldr(
+        char const * const xs,
+        char const init,
+        char ( * const f )( char x, char acc ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    char acc = init;
+    for ( size_t i = str__length( xs ); i > 0; i-- ) {
+        acc = f( xs[ i - 1 ], acc );
+    }
+    return acc;
+}
+
+
+char
+str__foldr1(
+        char const * const xs,
+        char ( * const f )( char acc, char x ) )
+{
+    ASSERT( xs != NULL, f != NULL, str__length( xs ) > 0 );
+
+    char acc = xs[ 0 ];
+    for ( size_t i = str__length( xs ) - 1; i > 0; i-- ) {
+        acc = f( xs[ i - 1 ], acc );
+    }
+    return acc;
+}
+
+
+char const *
+str__pick(
+        char const * const xs,
+        bool ( * const f )( char const * pick, char x ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    char const * pick = NULL;
+    for ( size_t i = 0; xs[ i ] != '\0'; i++ ) {
+        char const * const x = xs + i;
+        if ( f( pick, *x ) ) {
+            pick = x;
+        }
+    }
+    return pick;
+}
+
+
+bool
+str__each_(
+        char const * const xs,
+        struct str__each__options const o )
+{
+    ASSERT( xs != NULL );
+
+    for ( size_t i = 0; xs[ i ] != '\0'; i++ ) {
+        char const x = xs[ i ];
+        if ( ( o.where != NULL && o.where( x ) == false )
+          || ( o.where_not != NULL && o.where_not( x ) == true ) ) {
+            continue;
+        }
+        if ( o.e != NULL ) {
+            o.e( x );
+            if ( errno ) { return false; }
+        } else if ( o.b != NULL ) {
+            if ( o.b( x ) == false ) { return false; }
+        } else if ( o.f != NULL ) {
+            o.f( x );
+        }
+    }
+    return true;
 }
 
 
@@ -317,17 +604,249 @@ bool
 str__equal_by(
         char const * const xs,
         char const * const ys,
-        bool ( * const eq )( char, char ) )
+        bool ( * const f )( char x, char y ) )
 {
-    ASSERT( xs != NULL, ys != NULL, eq != NULL );
+    ASSERT( xs != NULL, ys != NULL, f != NULL );
 
     size_t i = 0;
     bool b;
-    while ( b = eq( xs[ i ], ys[ i ] ),
+    while ( b = f( xs[ i ], ys[ i ] ),
             b == true && xs[ i ] != '\0' && ys[ i ] != '\0' ) {
         i++;
     }
     return b;
+}
+
+
+bool
+str__elem_by(
+        char const * const xs,
+        char const y,
+        bool ( * const f )( char x, char y ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return str__elem_ptr_by( xs, y, f ) != NULL;
+}
+
+
+char const *
+str__elem_ptr_by(
+        char const * const xs,
+        char const y,
+        bool ( * const f )( char x, char y ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    Maybe_size const mi = str__elem_index_by( xs, y, f );
+    return mi.nothing ? NULL : xs + mi.value;
+}
+
+
+Maybe_size
+str__elem_index_by(
+        char const * const xs,
+        char const y,
+        bool ( * const f )( char x, char y ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    for ( size_t i = 0; xs[ i ] != '\0'; i++ ) {
+        if ( f( xs[ i ], y ) ) {
+            return ( Maybe_size ){ .value = i };
+        }
+    }
+    return ( Maybe_size ){ .nothing = true };
+}
+
+
+size_t
+str__elem_count_by(
+        char const * const xs,
+        char const y,
+        bool ( * const f )( char x, char y ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    size_t count = 0;
+    char const * xp = xs;
+    Maybe_size mi;
+    while ( mi = str__elem_index_by( xp, y, f ), !mi.nothing ) {
+        xp = xs + mi.value + 1;
+        count++;
+    }
+    return count;
+}
+
+
+bool
+str__infix_by(
+        char const * const xs,
+        char const * const ys,
+        bool ( * const f )( char x, char y ) )
+{
+    ASSERT( xs != NULL, ys != NULL, f != NULL );
+
+    return str__infix_ptr_by( xs, ys, f ) != NULL;
+}
+
+
+
+char const *
+str__infix_ptr_by(
+        char const * const xs,
+        char const * const ys,
+        bool ( * const f )( char x, char y ) )
+{
+    ASSERT( xs != NULL, ys != NULL, f != NULL );
+
+    Maybe_size const mi = str__infix_index_by( xs, ys, f );
+    return mi.nothing ? NULL : xs + mi.value;
+}
+
+
+Maybe_size
+str__infix_index_by(
+        char const * const xs,
+        char const * const ys,
+        bool ( * const f )( char x, char y ) )
+{
+    ASSERT( xs != NULL, ys != NULL, f != NULL );
+
+    for ( size_t i = 0; xs[ i ] != '\0'; i++ ) {
+        // Check that `ys` is a prefix of `xs + i`:
+        char const * xp = xs + i;
+        char const * yp = ys;
+        bool r;
+        while ( r = f( *xp, *yp ),
+                r == true && *xp != '\0' && *yp != '\0' ) {
+            xp++;
+            yp++;
+        }
+        // If we got to the end of `xs + i` before we got to the end of `ys`,
+        // then `ys` can't possibly be a prefix of `xs + i + 1`:
+        if ( *xp == '\0' && *yp != '\0' ) {
+            break;
+        // Otherwise, if `f` returned `true` for all `j` up to the end of
+        // `ys`, then we found it infix in `xs` at the `i`th index:
+        } else if ( r == true ) {
+            return ( Maybe_size ){ .value = i };
+        }
+    }
+    // If here, `ys` was not a prefix of `xs + i` for all `i` below the
+    // length of `xs`, so it's not infix (by `f`) anywhere in `xs`:
+    return ( Maybe_size ){ .nothing = true };
+}
+
+
+size_t
+str__infix_count_by(
+        char const * const xs,
+        char const * const ys,
+        bool ( * const f )( char x, char y ) )
+{
+    ASSERT( xs != NULL, ys != NULL, f != NULL );
+
+    size_t count = 0;
+    char const * xp = xs;
+    Maybe_size mi;
+    while ( mi = str__infix_index_by( xp, ys, f ), !mi.nothing ) {
+        xp = xs + mi.value + 1;
+        count++;
+    }
+    return count;
+}
+
+
+bool
+str__is_prefix_by(
+        char const * const xs,
+        char const * const ps,
+        bool ( * const f )( char x, char p ) )
+{
+    ASSERT( xs != NULL, ps != NULL, f != NULL );
+
+    for ( size_t i = 0; ps[ i ] != '\0'; i++ ) {
+        if ( xs[ i ] == '\0' || !f( xs[ i ], ps[ i ] ) ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+bool
+str__is_suffix_by(
+        char const * const xs,
+        char const * const ss,
+        bool ( * const f )( char x, char s ) )
+{
+    ASSERT( xs != NULL, ss != NULL, f != NULL );
+
+    size_t const xs_len = str__length( xs );
+    size_t const ss_len = str__length( ss );
+    if ( ss_len > xs_len ) {
+        return false;
+    }
+    size_t const offset = xs_len - ss_len;
+    for ( size_t i = 0; ss[ i ] != '\0'; i++ ) {
+        if ( !f( xs[ offset + i ], ss[ i ] ) ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+ord
+str__compare_by(
+        char const * const xs,
+        char const * const ys,
+        ord ( * const f )( char x, char y ) )
+{
+    ASSERT( xs != NULL, ys != NULL, f != NULL );
+
+    size_t i = 0;
+    ord r;
+    while ( r = f( xs[ i ], ys[ i ] ),
+            r == EQ && xs[ i ] != '\0' && ys[ i ] != '\0' ) {
+        i++;
+    }
+    return r;
+}
+
+
+char
+str__minimum_by(
+        char const * const xs,
+        ord ( * const f )( char x, char min ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    char min = xs[ 0 ];
+    for ( size_t i = 0; xs[ i ] != '\0'; i++ ) {
+        if ( f( xs[ i ], min ) <= LT ) {
+            min = xs[ i ];
+        }
+    }
+    return min;
+}
+
+
+char
+str__maximum_by(
+        char const * const xs,
+        ord ( * const f )( char x, char max ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    char max = xs[ 0 ];
+    for ( size_t i = 0; xs[ i ] != '\0'; i++ ) {
+        if ( f( xs[ i ], max ) >= GT ) {
+            max = xs[ i ];
+        }
+    }
+    return max;
 }
 
 
@@ -338,7 +857,7 @@ str__equal(
 {
     ASSERT( xs != NULL, ys != NULL );
 
-    return str__equal_by( xs, ys, char__equal );
+    return str__equal_by( xs, ys, char_equal );
 }
 
 
@@ -349,7 +868,7 @@ str__equal_i(
 {
     ASSERT( xs != NULL, ys != NULL );
 
-    return str__equal_by( xs, ys, char__equal_i );
+    return str__equal_by( xs, ys, char_equal_i );
 }
 
 
@@ -376,110 +895,24 @@ str__not_equal_i(
 
 
 bool
-str__elem_by(
-        char const * const xs,
-        char const c,
-        bool ( * const eq )( char, char ) )
-{
-    ASSERT( xs != NULL );
-
-    return !( str__elem_index_by( xs, c, eq ).nothing );
-}
-
-
-bool
 str__elem(
         char const * const xs,
-        char const c )
+        char const y )
 {
     ASSERT( xs != NULL );
 
-    return str__elem_by( xs, c, char__equal );
+    return str__elem_by( xs, y, char_equal );
 }
 
 
 bool
 str__elem_i(
         char const * const xs,
-        char const c )
+        char const y )
 {
     ASSERT( xs != NULL );
 
-    return str__elem_by( xs, c, char__equal_i );
-}
-
-
-bool
-str__not_elem(
-        char const * const xs,
-        char const c )
-{
-    ASSERT( xs != NULL );
-
-    return !str__elem( xs, c );
-}
-
-
-bool
-str__not_elem_i(
-        char const * const xs,
-        char const c )
-{
-    ASSERT( xs != NULL );
-
-    return !str__elem_i( xs, c );
-}
-
-
-Maybe_size
-str__elem_index_by(
-        char const * const xs,
-        char const c,
-        bool ( * const eq )( char, char ) )
-{
-    ASSERT( xs != NULL, eq != NULL );
-
-    for ( size_t i = 0; xs[ i ] != '\0'; i++ ) {
-        if ( eq( xs[ i ], c ) ) {
-            return ( Maybe_size ){ .value = i };
-        }
-    }
-    return ( Maybe_size ){ .nothing = true };
-}
-
-
-Maybe_size
-str__elem_index(
-        char const * const xs,
-        char const c )
-{
-    ASSERT( xs != NULL );
-
-    return str__elem_index_by( xs, c, char__equal );
-}
-
-
-Maybe_size
-str__elem_index_i(
-        char const * const xs,
-        char const c )
-{
-    ASSERT( xs != NULL );
-
-    return str__elem_index_by( xs, c, char__equal_i );
-}
-
-
-char const *
-str__elem_ptr_by(
-        char const * const xs,
-        char const c,
-        bool ( * const eq )( char, char ) )
-{
-    ASSERT( xs != NULL, eq != NULL );
-
-    Maybe_size const mi = str__elem_index_by( xs, c, eq );
-    return mi.nothing ? NULL : xs + mi.value;
+    return str__elem_by( xs, y, char_equal_i );
 }
 
 
@@ -490,7 +923,7 @@ str__elem_ptr(
 {
     ASSERT( xs != NULL );
 
-    return str__elem_ptr_by( xs, c, char__equal );
+    return str__elem_ptr_by( xs, c, char_equal );
 }
 
 
@@ -501,252 +934,183 @@ str__elem_ptr_i(
 {
     ASSERT( xs != NULL );
 
-    return str__elem_ptr_by( xs, c, char__equal_i );
+    return str__elem_ptr_by( xs, c, char_equal_i );
 }
 
 
-char const *
-str__find(
+Maybe_size
+str__elem_index(
         char const * const xs,
-        bool ( * const p )( char ) )
-{
-    ASSERT( xs != NULL, p != NULL );
-
-    for ( size_t i = 0; xs[ i ] != '\0'; i++ ) {
-        if ( p( xs[ i ] ) ) {
-            return xs + i;
-        }
-    }
-    return NULL;
-}
-
-
-size_t
-str__count_elem_by(
-        char const * const xs,
-        char const c,
-        bool ( * const eq )( char, char ) )
-{
-    ASSERT( xs != NULL, eq != NULL );
-
-    size_t count = 0;
-    for ( size_t i = 0; xs[ i ] != '\0'; i++ ) {
-        if ( eq( xs[ i ], c ) ) {
-            count++;
-        }
-    }
-    return count;
-}
-
-
-size_t
-str__count_elem(
-        char const * const xs,
-        char const c )
+        char const y )
 {
     ASSERT( xs != NULL );
 
-    return str__count_elem_by( xs, c, char__equal );
+    return str__elem_index_by( xs, y, char_equal );
+}
+
+
+Maybe_size
+str__elem_index_i(
+        char const * const xs,
+        char const y )
+{
+    ASSERT( xs != NULL );
+
+    return str__elem_index_by( xs, y, char_equal_i );
 }
 
 
 size_t
-str__count_elem_i(
+str__elem_count(
         char const * const xs,
-        char const c )
+        char const y )
 {
     ASSERT( xs != NULL );
 
-    return str__count_elem_by( xs, c, char__equal_i );
+    return str__elem_count_by( xs, y, char_equal );
+}
+
+
+size_t
+str__elem_count_i(
+        char const * const xs,
+        char const y )
+{
+    ASSERT( xs != NULL );
+
+    return str__elem_count_by( xs, y, char_equal_i );
 }
 
 
 bool
-str__is_prefix_by(
+str__infix(
         char const * const xs,
-        char const * const prefix,
-        bool ( * const eq )( char, char ) )
+        char const * const ys )
 {
-    ASSERT( xs != NULL, prefix != NULL, eq != NULL );
+    ASSERT( xs != NULL, ys != NULL );
 
-    for ( size_t i = 0; prefix[ i ] != '\0'; i++ ) {
-        if ( xs[ i ] == '\0' || !eq( xs[ i ], prefix[ i ] ) ) {
-            return false;
-        }
-    }
-    return true;
+    return str__infix_by( xs, ys, char_equal );
+}
+
+
+bool
+str__infix_i(
+        char const * const xs,
+        char const * const ys )
+{
+    ASSERT( xs != NULL, ys != NULL );
+
+    return str__infix_by( xs, ys, char_equal_i );
+}
+
+
+char const *
+str__infix_ptr(
+        char const * const xs,
+        char const * const ys )
+{
+    ASSERT( xs != NULL, ys != NULL );
+
+    return str__infix_ptr_by( xs, ys, char_equal );
+}
+
+
+char const *
+str__infix_ptr_i(
+        char const * const xs,
+        char const * const ys )
+{
+    ASSERT( xs != NULL, ys != NULL );
+
+    return str__infix_ptr_by( xs, ys, char_equal_i );
+}
+
+
+Maybe_size
+str__infix_index(
+        char const * const xs,
+        char const * const ys )
+{
+    ASSERT( xs != NULL, ys != NULL );
+
+    return str__infix_index_by( xs, ys, char_equal );
+}
+
+
+Maybe_size
+str__infix_index_i(
+        char const * const xs,
+        char const * const ys )
+{
+    ASSERT( xs != NULL, ys != NULL );
+
+    return str__infix_index_by( xs, ys, char_equal_i );
+}
+
+
+size_t
+str__infix_count(
+        char const * const xs,
+        char const * const ys )
+{
+    ASSERT( xs != NULL, ys != NULL );
+
+    return str__infix_count_by( xs, ys, char_equal );
+}
+
+
+size_t
+str__infix_count_i(
+        char const * const xs,
+        char const * const ys )
+{
+    ASSERT( xs != NULL, ys != NULL );
+
+    return str__infix_count_by( xs, ys, char_equal_i );
 }
 
 
 bool
 str__is_prefix(
         char const * const xs,
-        char const * const prefix )
+        char const * const ps )
 {
-    ASSERT( xs != NULL, prefix != NULL );
+    ASSERT( xs != NULL, ps != NULL );
 
-    return str__is_prefix_by( xs, prefix, char__equal );
+    return str__is_prefix_by( xs, ps, char_equal );
 }
 
 
 bool
 str__is_prefix_i(
         char const * const xs,
-        char const * const prefix )
+        char const * const ps )
 {
-    ASSERT( xs != NULL, prefix != NULL );
+    ASSERT( xs != NULL, ps != NULL );
 
-    return str__is_prefix_by( xs, prefix, char__equal_i );
-}
-
-
-bool
-str__is_suffix_by(
-        char const * const xs,
-        char const * const suffix,
-        bool ( * const eq )( char, char ) )
-{
-    ASSERT( xs != NULL, suffix != NULL, eq != NULL );
-
-    size_t const xs_len = str__length( xs );
-    size_t const suf_len = str__length( suffix );
-    if ( suf_len > xs_len ) {
-        return false;
-    }
-    size_t const offset = xs_len - suf_len;
-    for ( size_t i = 0; suffix[ i ] != '\0'; i++ ) {
-        if ( !eq( xs[ offset + i ], suffix[ i ] ) ) {
-            return false;
-        }
-    }
-    return true;
+    return str__is_prefix_by( xs, ps, char_equal_i );
 }
 
 
 bool
 str__is_suffix(
         char const * const xs,
-        char const * const suffix )
+        char const * const ss )
 {
-    ASSERT( xs != NULL, suffix != NULL );
+    ASSERT( xs != NULL, ss != NULL );
 
-    return str__is_suffix_by( xs, suffix, char__equal );
+    return str__is_suffix_by( xs, ss, char_equal );
 }
 
 
 bool
 str__is_suffix_i(
         char const * const xs,
-        char const * const suffix )
+        char const * const ss )
 {
-    ASSERT( xs != NULL, suffix != NULL );
+    ASSERT( xs != NULL, ss != NULL );
 
-    return str__is_suffix_by( xs, suffix, char__equal_i );
-}
-
-
-bool
-str__is_infix_by(
-        char const * const xs,
-        char const * const ys,
-        bool ( * const eq )( char, char ) )
-{
-    ASSERT( xs != NULL, ys != NULL, eq != NULL );
-
-    return !( str__index_str_by( xs, ys, eq ).nothing );
-}
-
-
-bool
-str__is_infix(
-        char const * const xs,
-        char const * const ys )
-{
-    ASSERT( xs != NULL, ys != NULL );
-
-    return str__is_infix_by( xs, ys, char__equal );
-}
-
-
-bool
-str__is_infix_i(
-        char const * const xs,
-        char const * const ys )
-{
-    ASSERT( xs != NULL, ys != NULL );
-
-    return str__is_infix_by( xs, ys, char__equal_i );
-}
-
-
-Maybe_size
-str__index_str_by(
-        char const * const xs,
-        char const * const ys,
-        bool ( * const eq )( char, char ) )
-{
-    ASSERT( xs != NULL, ys != NULL, eq != NULL );
-
-    for ( size_t i = 0; xs[ i ] != '\0'; i++ ) {
-        char const * const xs_i = xs + i;
-        // Check if `ys` is a prefix of `xs + i`, but if we get to the end of
-        // `xs_i` before the end of `ys`, then `ys` is longer than `xs_i`, and
-        // so `ys` can't possibly be contained in `xs_i + 1`.
-        for ( size_t j = 0; ys[ j ] != '\0'; j++ ) {
-            if ( xs_i[ j ] == '\0' ) {
-                return ( Maybe_size ){ .nothing = true };
-            } else if ( !eq( xs_i[ j ], ys[ j ] ) ) {
-                goto next_i;
-            }
-        }
-        // If here, `ys` is a prefix of `xs_i`:
-        return ( Maybe_size ){ .value = i };
-next_i:
-        continue;
-    }
-    // If here, `ys` was not a prefix of `xs`, nor `xs + 1`, nor `xs + 2`, up
-    // to the end of `xs`:
-    return ( Maybe_size ){ .nothing = true };
-}
-
-
-Maybe_size
-str__index_str(
-        char const * const xs,
-        char const * const ys )
-{
-    ASSERT( xs != NULL, ys != NULL );
-
-    return str__index_str_by( xs, ys, char__equal );
-}
-
-
-Maybe_size
-str__index_str_i(
-        char const * const xs,
-        char const * const ys )
-{
-    ASSERT( xs != NULL, ys != NULL );
-
-    return str__index_str_by( xs, ys, char__equal_i );
-}
-
-
-ord
-str__compare_by(
-        char const * const xs,
-        char const * const ys,
-        ord ( * const cmp )( char, char ) )
-{
-    ASSERT( xs != NULL, ys != NULL, cmp != NULL );
-
-    size_t i = 0;
-    ord c;
-    while ( c = cmp( xs[ i ], ys[ i ] ),
-            c == EQ && xs[ i ] != '\0' && ys[ i ] != '\0' ) {
-        i++;
-    }
-    return c;
+    return str__is_suffix_by( xs, ss, char_equal_i );
 }
 
 
@@ -757,7 +1121,7 @@ str__compare(
 {
     ASSERT( xs != NULL, ys != NULL );
 
-    return str__compare_by( xs, ys, char__compare );
+    return str__compare_by( xs, ys, char_compare );
 }
 
 
@@ -768,7 +1132,7 @@ str__compare_i(
 {
     ASSERT( xs != NULL, ys != NULL );
 
-    return str__compare_by( xs, ys, char__compare_i );
+    return str__compare_by( xs, ys, char_compare_i );
 }
 
 
@@ -917,46 +1281,12 @@ str__in_xrange(
 
 
 char
-str__minimum_by(
-        char const * const xs,
-        ord ( * const cmp )( char, char ) )
-{
-    ASSERT( xs != NULL, cmp != NULL );
-
-    char min = xs[ 0 ];
-    for ( size_t i = 0; xs[ i ] != '\0'; i++ ) {
-        if ( cmp( xs[ i ], min ) <= LT ) {
-            min = xs[ i ];
-        }
-    }
-    return min;
-}
-
-
-char
 str__minimum(
         char const * const xs )
 {
     ASSERT( xs != NULL );
 
-    return str__minimum_by( xs, char__compare );
-}
-
-
-char
-str__maximum_by(
-        char const * const xs,
-        ord ( * const cmp )( char, char ) )
-{
-    ASSERT( xs != NULL, cmp != NULL );
-
-    char max = xs[ 0 ];
-    for ( size_t i = 0; xs[ i ] != '\0'; i++ ) {
-        if ( cmp( xs[ i ], max ) >= GT ) {
-            max = xs[ i ];
-        }
-    }
-    return max;
+    return str__minimum_by( xs, char_compare );
 }
 
 
@@ -966,6 +1296,6 @@ str__maximum(
 {
     ASSERT( xs != NULL );
 
-    return str__maximum_by( xs, char__compare );
+    return str__maximum_by( xs, char_compare );
 }
 

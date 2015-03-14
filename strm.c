@@ -19,15 +19,33 @@
 
 #include "strm.h"
 
-#include <limits.h>
+#include <ctype.h>
 
 #include <libtypes/types.h>
 #include <libmacro/assert.h>
 #include <libmacro/minmax.h>
-#include <libbase/char.h>
-#include <libmaybe/def/maybe-size.h>
 
 #include "str.h"
+
+
+static
+bool
+char_equal( char const x,
+            char const y )
+{
+    return x == y;
+}
+
+
+static
+bool
+char_equal_i( char const x,
+              char const y )
+{
+    return toupper( x ) == toupper( y );
+}
+
+
 
 
 char *
@@ -103,24 +121,6 @@ strm__last(
         char * const xs )
 {
     return str__last( xs );
-}
-
-
-bool
-strm__any(
-        char * const xs,
-        bool ( * const p )( char ) )
-{
-    return str__any( xs, p );
-}
-
-
-bool
-strm__all(
-        char * const xs,
-        bool ( * const p )( char ) )
-{
-    return str__all( xs, p );
 }
 
 
@@ -260,13 +260,384 @@ strm__drop_while(
 }
 
 
+char *
+strm__find(
+        char * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    Maybe_size const mi = str__find_index( xs, f );
+    return mi.nothing ? NULL : xs + mi.value;
+}
+
+
+char *
+strm__find_not(
+        char * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    Maybe_size const mi = str__find_index_not( xs, f );
+    return mi.nothing ? NULL : xs + mi.value;
+}
+
+
+char *
+strm__find_last(
+        char * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    Maybe_size const mi = str__find_last_index( xs, f );
+    return mi.nothing ? NULL : xs + mi.value;
+}
+
+
+char *
+strm__find_last_not(
+        char * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    Maybe_size const mi = str__find_last_index_not( xs, f );
+    return mi.nothing ? NULL : xs + mi.value;
+}
+
+
+Maybe_size
+strm__find_index(
+        char * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return str__find_index( xs, f );
+}
+
+
+Maybe_size
+strm__find_index_not(
+        char * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return str__find_index_not( xs, f );
+}
+
+
+Maybe_size
+strm__find_last_index(
+        char * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return str__find_last_index( xs, f );
+}
+
+
+Maybe_size
+strm__find_last_index_not(
+        char * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return str__find_last_index( xs, f );
+}
+
+
+bool
+strm__any(
+        char * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return str__any( xs, f );
+}
+
+
+bool
+strm__all(
+        char * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return str__all( xs, f );
+}
+
+
+bool
+strm__only_one(
+        char * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return str__only_one( xs, f );
+}
+
+
+bool
+strm__only_one_not(
+        char * const xs,
+        bool ( * const f )( char ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return str__only_one_not( xs, f );
+}
+
+
+char
+strm__foldl(
+        char * const xs,
+        char const init,
+        char ( * const f )( char acc, char x ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return str__foldl( xs, init, f );
+}
+
+
+char
+strm__foldl1(
+        char * const xs,
+        char ( * const f )( char acc, char x ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return str__foldl1( xs, f );
+}
+
+
+char
+strm__foldr(
+        char * const xs,
+        char const init,
+        char ( * const f )( char x, char acc ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return str__foldr( xs, init, f );
+}
+
+
+char
+strm__foldr1(
+        char * const xs,
+        char ( * const f )( char acc, char x ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return str__foldr1( xs, f );
+}
+
+
+char *
+strm__pick(
+        char * const xs,
+        bool ( * const f )( char const * pick, char x ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    char * pick = NULL;
+    for ( size_t i = 0; xs[ i ] != '\0'; i++ ) {
+        char * const x = xs + i;
+        if ( f( pick, *x ) ) {
+            pick = x;
+        }
+    }
+    return pick;
+}
+
+
+bool
+strm__each_(
+        char * const xs,
+        struct strm__each__options const o )
+{
+    ASSERT( xs != NULL );
+
+    return str__each( xs, .where = o.where, .where_not = o.where_not,
+                          .f = o.f, .b = o.b, .e = o.e );
+}
+
+
 bool
 strm__equal_by(
         char * const xs,
         char * const ys,
-        bool ( * const eq )( char, char ) )
+        bool ( * const f )( char x, char y ) )
 {
-    return str__equal_by( xs, ys, eq );
+    ASSERT( xs != NULL, ys != NULL, f != NULL );
+
+    return str__equal_by( xs, ys, f );
+}
+
+
+bool
+strm__elem_by(
+        char * const xs,
+        char const y,
+        bool ( * const f )( char x, char y ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return str__elem_by( xs, y, f );
+}
+
+
+char *
+strm__elem_ptr_by(
+        char * const xs,
+        char const y,
+        bool ( * const f )( char x, char y ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    Maybe_size const mi = str__elem_index_by( xs, y, f );
+    return mi.nothing ? NULL : xs + mi.value;
+}
+
+
+Maybe_size
+strm__elem_index_by(
+        char * const xs,
+        char const y,
+        bool ( * const f )( char x, char y ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return str__elem_index_by( xs, y, f );
+}
+
+
+size_t
+strm__elem_count_by(
+        char * const xs,
+        char const y,
+        bool ( * const f )( char x, char y ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return str__elem_count_by( xs, y, f );
+}
+
+
+bool
+strm__infix_by(
+        char * const xs,
+        char * const ys,
+        bool ( * const f )( char x, char y ) )
+{
+    ASSERT( xs != NULL, ys != NULL, f != NULL );
+
+    return str__infix_by( xs, ys, f );
+}
+
+
+
+char *
+strm__infix_ptr_by(
+        char * const xs,
+        char * const ys,
+        bool ( * const f )( char x, char y ) )
+{
+    ASSERT( xs != NULL, ys != NULL, f != NULL );
+
+    Maybe_size const mi = str__infix_index_by( xs, ys, f );
+    return mi.nothing ? NULL : xs + mi.value;
+}
+
+
+Maybe_size
+strm__infix_index_by(
+        char * const xs,
+        char * const ys,
+        bool ( * const f )( char x, char y ) )
+{
+    ASSERT( xs != NULL, ys != NULL, f != NULL );
+
+    return str__infix_index_by( xs, ys, f );
+}
+
+
+size_t
+strm__infix_count_by(
+        char * const xs,
+        char * const ys,
+        bool ( * const f )( char x, char y ) )
+{
+    ASSERT( xs != NULL, ys != NULL, f != NULL );
+
+    return str__infix_count_by( xs, ys, f );
+}
+
+
+bool
+strm__is_prefix_by(
+        char * const xs,
+        char * const ps,
+        bool ( * const f )( char x, char p ) )
+{
+    ASSERT( xs != NULL, ps != NULL, f != NULL );
+
+    return str__is_prefix_by( xs, ps, f );
+}
+
+
+bool
+strm__is_suffix_by(
+        char * const xs,
+        char * const ss,
+        bool ( * const f )( char x, char s ) )
+{
+    ASSERT( xs != NULL, ss != NULL, f != NULL );
+
+    return str__is_suffix_by( xs, ss, f );
+}
+
+
+ord
+strm__compare_by(
+        char * const xs,
+        char * const ys,
+        ord ( * const f )( char x, char y ) )
+{
+    ASSERT( xs != NULL, ys != NULL, f != NULL );
+
+    return str__compare_by( xs, ys, f );
+}
+
+
+char
+strm__minimum_by(
+        char * const xs,
+        ord ( * const f )( char x, char min ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return str__minimum_by( xs, f );
+}
+
+
+char
+strm__maximum_by(
+        char * const xs,
+        ord ( * const f )( char x, char max ) )
+{
+    ASSERT( xs != NULL, f != NULL );
+
+    return str__maximum_by( xs, f );
 }
 
 
@@ -275,6 +646,8 @@ strm__equal(
         char * const xs,
         char * const ys )
 {
+    ASSERT( xs != NULL, ys != NULL );
+
     return str__equal( xs, ys );
 }
 
@@ -284,6 +657,8 @@ strm__equal_i(
         char * const xs,
         char * const ys )
 {
+    ASSERT( xs != NULL, ys != NULL );
+
     return str__equal_i( xs, ys );
 }
 
@@ -311,101 +686,24 @@ strm__not_equal_i(
 
 
 bool
-strm__elem_by(
-        char * const xs,
-        char const c,
-        bool ( * const eq )( char, char ) )
-{
-    return str__elem_by( xs, c, eq );
-}
-
-
-bool
 strm__elem(
         char * const xs,
-        char const c )
+        char const y )
 {
     ASSERT( xs != NULL );
 
-    return strm__elem_by( xs, c, char__equal );
+    return str__elem( xs, y );
 }
 
 
 bool
 strm__elem_i(
         char * const xs,
-        char const c )
+        char const y )
 {
     ASSERT( xs != NULL );
 
-    return strm__elem_by( xs, c, char__equal_i );
-}
-
-
-bool
-strm__not_elem(
-        char * const xs,
-        char const c )
-{
-    ASSERT( xs != NULL );
-
-    return !strm__elem( xs, c );
-}
-
-
-bool
-strm__not_elem_i(
-        char * const xs,
-        char const c )
-{
-    ASSERT( xs != NULL );
-
-    return !strm__elem_i( xs, c );
-}
-
-
-Maybe_size
-strm__elem_index_by(
-        char * const xs,
-        char const c,
-        bool ( * const eq )( char, char ) )
-{
-    return str__elem_index_by( xs, c, eq );
-}
-
-
-Maybe_size
-strm__elem_index(
-        char * const xs,
-        char const c )
-{
-    ASSERT( xs != NULL );
-
-    return strm__elem_index_by( xs, c, char__equal );
-}
-
-
-Maybe_size
-strm__elem_index_i(
-        char * const xs,
-        char const c )
-{
-    ASSERT( xs != NULL );
-
-    return strm__elem_index_by( xs, c, char__equal_i );
-}
-
-
-char *
-strm__elem_ptr_by(
-        char * const xs,
-        char const c,
-        bool ( * const eq )( char, char ) )
-{
-    ASSERT( xs != NULL, eq != NULL );
-
-    Maybe_size const mi = strm__elem_index_by( xs, c, eq );
-    return mi.nothing ? NULL : xs + mi.value;
+    return str__elem_i( xs, y );
 }
 
 
@@ -416,7 +714,7 @@ strm__elem_ptr(
 {
     ASSERT( xs != NULL );
 
-    return strm__elem_ptr_by( xs, c, char__equal );
+    return strm__elem_ptr_by( xs, c, char_equal );
 }
 
 
@@ -427,195 +725,183 @@ strm__elem_ptr_i(
 {
     ASSERT( xs != NULL );
 
-    return strm__elem_ptr_by( xs, c, char__equal_i );
+    return strm__elem_ptr_by( xs, c, char_equal_i );
 }
 
 
-char *
-strm__find(
+Maybe_size
+strm__elem_index(
         char * const xs,
-        bool ( * const p )( char ) )
-{
-    ASSERT( xs != NULL, p != NULL );
-
-    for ( size_t i = 0; xs[ i ] != '\0'; i++ ) {
-        if ( p( xs[ i ] ) ) {
-            return xs + i;
-        }
-    }
-    return NULL;
-}
-
-
-size_t
-strm__count_elem_by(
-        char * const xs,
-        char const c,
-        bool ( * const eq )( char, char ) )
-{
-    return str__count_elem_by( xs, c, eq );
-}
-
-
-size_t
-strm__count_elem(
-        char * const xs,
-        char const c )
+        char const y )
 {
     ASSERT( xs != NULL );
 
-    return strm__count_elem_by( xs, c, char__equal );
+    return str__elem_index( xs, y );
+}
+
+
+Maybe_size
+strm__elem_index_i(
+        char * const xs,
+        char const y )
+{
+    ASSERT( xs != NULL );
+
+    return str__elem_index_i( xs, y );
 }
 
 
 size_t
-strm__count_elem_i(
+strm__elem_count(
         char * const xs,
-        char const c )
+        char const y )
 {
     ASSERT( xs != NULL );
 
-    return strm__count_elem_by( xs, c, char__equal_i );
+    return str__elem_count( xs, y );
+}
+
+
+size_t
+strm__elem_count_i(
+        char * const xs,
+        char const y )
+{
+    ASSERT( xs != NULL );
+
+    return str__elem_count_i( xs, y );
 }
 
 
 bool
-strm__is_prefix_by(
+strm__infix(
         char * const xs,
-        char * const prefix,
-        bool ( * const eq )( char, char ) )
+        char * const ys )
 {
-    return str__is_prefix_by( xs, prefix, eq );
+    ASSERT( xs != NULL, ys != NULL );
+
+    return str__infix( xs, ys );
+}
+
+
+bool
+strm__infix_i(
+        char * const xs,
+        char * const ys )
+{
+    ASSERT( xs != NULL, ys != NULL );
+
+    return str__infix_i( xs, ys );
+}
+
+
+char *
+strm__infix_ptr(
+        char * const xs,
+        char * const ys )
+{
+    ASSERT( xs != NULL, ys != NULL );
+
+    return strm__infix_ptr_by( xs, ys, char_equal );
+}
+
+
+char *
+strm__infix_ptr_i(
+        char * const xs,
+        char * const ys )
+{
+    ASSERT( xs != NULL, ys != NULL );
+
+    return strm__infix_ptr_by( xs, ys, char_equal_i );
+}
+
+
+Maybe_size
+strm__infix_index(
+        char * const xs,
+        char * const ys )
+{
+    ASSERT( xs != NULL, ys != NULL );
+
+    return str__infix_index( xs, ys );
+}
+
+
+Maybe_size
+strm__infix_index_i(
+        char * const xs,
+        char * const ys )
+{
+    ASSERT( xs != NULL, ys != NULL );
+
+    return str__infix_index_i( xs, ys );
+}
+
+
+size_t
+strm__infix_count(
+        char * const xs,
+        char * const ys )
+{
+    ASSERT( xs != NULL, ys != NULL );
+
+    return str__infix_count( xs, ys );
+}
+
+
+size_t
+strm__infix_count_i(
+        char * const xs,
+        char * const ys )
+{
+    ASSERT( xs != NULL, ys != NULL );
+
+    return str__infix_count_i( xs, ys );
 }
 
 
 bool
 strm__is_prefix(
         char * const xs,
-        char * const prefix )
+        char * const ps )
 {
-    ASSERT( xs != NULL, prefix != NULL );
+    ASSERT( xs != NULL, ps != NULL );
 
-    return strm__is_prefix_by( xs, prefix, char__equal );
+    return str__is_prefix( xs, ps );
 }
 
 
 bool
 strm__is_prefix_i(
         char * const xs,
-        char * const prefix )
+        char * const ps )
 {
-    ASSERT( xs != NULL, prefix != NULL );
+    ASSERT( xs != NULL, ps != NULL );
 
-    return strm__is_prefix_by( xs, prefix, char__equal_i );
-}
-
-
-bool
-strm__is_suffix_by(
-        char * const xs,
-        char * const suffix,
-        bool ( * const eq )( char, char ) )
-{
-    return str__is_suffix_by( xs, suffix, eq );
+    return str__is_prefix( xs, ps );
 }
 
 
 bool
 strm__is_suffix(
         char * const xs,
-        char * const suffix )
+        char * const ss )
 {
-    ASSERT( xs != NULL, suffix != NULL );
+    ASSERT( xs != NULL, ss != NULL );
 
-    return strm__is_suffix_by( xs, suffix, char__equal );
+    return str__is_suffix( xs, ss );
 }
 
 
 bool
 strm__is_suffix_i(
         char * const xs,
-        char * const suffix )
+        char * const ss )
 {
-    ASSERT( xs != NULL, suffix != NULL );
+    ASSERT( xs != NULL, ss != NULL );
 
-    return strm__is_suffix_by( xs, suffix, char__equal_i );
-}
-
-
-bool
-strm__is_infix_by(
-        char * const xs,
-        char * const ys,
-        bool ( * const eq )( char, char ) )
-{
-    ASSERT( xs != NULL, ys != NULL, eq != NULL );
-
-    return !( strm__index_strm_by( xs, ys, eq ).nothing );
-}
-
-
-bool
-strm__is_infix(
-        char * const xs,
-        char * const ys )
-{
-    ASSERT( xs != NULL, ys != NULL );
-
-    return strm__is_infix_by( xs, ys, char__equal );
-}
-
-
-bool
-strm__is_infix_i(
-        char * const xs,
-        char * const ys )
-{
-    ASSERT( xs != NULL, ys != NULL );
-
-    return strm__is_infix_by( xs, ys, char__equal_i );
-}
-
-
-Maybe_size
-strm__index_strm_by(
-        char * const xs,
-        char * const ys,
-        bool ( * const eq )( char, char ) )
-{
-    return str__index_str_by( xs, ys, eq );
-}
-
-
-Maybe_size
-strm__index_strm(
-        char * const xs,
-        char * const ys )
-{
-    ASSERT( xs != NULL, ys != NULL );
-
-    return strm__index_strm_by( xs, ys, char__equal );
-}
-
-
-Maybe_size
-strm__index_strm_i(
-        char * const xs,
-        char * const ys )
-{
-    ASSERT( xs != NULL, ys != NULL );
-
-    return strm__index_strm_by( xs, ys, char__equal_i );
-}
-
-
-ord
-strm__compare_by(
-        char * const xs,
-        char * const ys,
-        ord ( * const cmp )( char, char ) )
-{
-    return str__compare_by( xs, ys, cmp );
+    return str__is_suffix_i( xs, ss );
 }
 
 
@@ -626,7 +912,7 @@ strm__compare(
 {
     ASSERT( xs != NULL, ys != NULL );
 
-    return strm__compare_by( xs, ys, char__compare );
+    return str__compare( xs, ys );
 }
 
 
@@ -637,7 +923,7 @@ strm__compare_i(
 {
     ASSERT( xs != NULL, ys != NULL );
 
-    return strm__compare_by( xs, ys, char__compare_i );
+    return str__compare_i( xs, ys );
 }
 
 
@@ -648,7 +934,7 @@ strm__less_than(
 {
     ASSERT( xs != NULL, ys != NULL );
 
-    return strm__compare( xs, ys ) == LT;
+    return str__less_than( xs, ys );
 }
 
 
@@ -659,7 +945,7 @@ strm__less_than_or_eq(
 {
     ASSERT( xs != NULL, ys != NULL );
 
-    return strm__compare( xs, ys ) <= EQ;
+    return str__less_than_or_eq( xs, ys );
 }
 
 
@@ -670,7 +956,7 @@ strm__greater_than_or_eq(
 {
     ASSERT( xs != NULL, ys != NULL );
 
-    return strm__compare( xs, ys ) >= EQ;
+    return str__greater_than_or_eq( xs, ys );
 }
 
 
@@ -681,7 +967,7 @@ strm__greater_than(
 {
     ASSERT( xs != NULL, ys != NULL );
 
-    return strm__compare( xs, ys ) == GT;
+    return str__greater_than( xs, ys );
 }
 
 
@@ -692,7 +978,7 @@ strm__min2(
 {
     ASSERT( xs != NULL, ys != NULL );
 
-    return strm__less_than( xs, ys ) ? xs : ys;
+    return str__less_than( xs, ys ) ? xs : ys;
 }
 
 
@@ -703,7 +989,7 @@ strm__max2(
 {
     ASSERT( xs != NULL, ys != NULL );
 
-    return strm__greater_than( xs, ys ) ? xs : ys;
+    return str__greater_than( xs, ys ) ? xs : ys;
 }
 
 
@@ -716,7 +1002,7 @@ strm__min_n(
 
     char * min = xss[ 0 ];
     for ( size_t i = 0; i < n; i++ ) {
-        if ( strm__less_than( xss[ i ], min ) ) {
+        if ( str__less_than( xss[ i ], min ) ) {
             min = xss[ i ];
         }
     }
@@ -733,7 +1019,7 @@ strm__max_n(
 
     char * max = xss[ 0 ];
     for ( size_t i = 0; i < n; i++ ) {
-        if ( strm__greater_than( xss[ i ], max ) ) {
+        if ( str__greater_than( xss[ i ], max ) ) {
             max = xss[ i ];
         }
     }
@@ -749,13 +1035,9 @@ strm__clamp(
 {
     ASSERT( lower != NULL, upper != NULL, xs != NULL );
 
-    if ( strm__greater_than_or_eq( lower, xs ) ) {
-        return lower;
-    } else if ( strm__less_than_or_eq( upper, xs ) ) {
-        return upper;
-    } else {
-        return xs;
-    }
+    return str__greater_than_or_eq( lower, xs ) ? lower
+         : str__less_than_or_eq( upper, xs )    ? upper
+                                                : xs;
 }
 
 
@@ -767,8 +1049,7 @@ strm__in_range(
 {
     ASSERT( lower != NULL, upper != NULL, xs != NULL );
 
-    return strm__less_than_or_eq( lower, xs )
-        && strm__greater_than_or_eq( upper, xs );
+    return str__in_range( lower, upper, xs );
 }
 
 
@@ -780,25 +1061,7 @@ strm__in_xrange(
 {
     ASSERT( lower != NULL, upper != NULL, xs != NULL );
 
-    return strm__less_than( lower, xs )
-        && strm__greater_than( upper, xs );
-}
-
-
-char
-strm__minimum_by(
-        char * const xs,
-        ord ( * const cmp )( char, char ) )
-{
-    ASSERT( xs != NULL, cmp != NULL );
-
-    char min = xs[ 0 ];
-    for ( size_t i = 0; xs[ i ] != '\0'; i++ ) {
-        if ( cmp( xs[ i ], min ) <= LT ) {
-            min = xs[ i ];
-        }
-    }
-    return min;
+    return str__in_xrange( lower, upper, xs );
 }
 
 
@@ -808,24 +1071,7 @@ strm__minimum(
 {
     ASSERT( xs != NULL );
 
-    return strm__minimum_by( xs, char__compare );
-}
-
-
-char
-strm__maximum_by(
-        char * const xs,
-        ord ( * const cmp )( char, char ) )
-{
-    ASSERT( xs != NULL, cmp != NULL );
-
-    char max = xs[ 0 ];
-    for ( size_t i = 0; xs[ i ] != '\0'; i++ ) {
-        if ( cmp( xs[ i ], max ) >= GT ) {
-            max = xs[ i ];
-        }
-    }
-    return max;
+    return str__minimum( xs );
 }
 
 
@@ -835,6 +1081,7 @@ strm__maximum(
 {
     ASSERT( xs != NULL );
 
-    return strm__maximum_by( xs, char__compare );
+    return str__maximum( xs );
 }
+
 

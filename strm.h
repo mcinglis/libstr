@@ -73,34 +73,22 @@ strm__last(
         char * xs );
 
 
-bool
-strm__any(
-        char * xs,
-        bool ( * p )( char ) );
-
-
-bool
-strm__all(
-        char * xs,
-        bool ( * p )( char ) );
-
-
 size_t
 strm__count(
         char * xs,
-        bool ( * p )( char ) );
+        bool ( * f )( char ) );
 
 
 size_t
 strm__count_first(
         char * xs,
-        bool ( * p )( char ) );
+        bool ( * f )( char ) );
 
 
 size_t
 strm__count_last(
         char * xs,
-        bool ( * p )( char ) );
+        bool ( * f )( char ) );
 
 
 char *
@@ -127,7 +115,7 @@ strm__take_end_3(
 char *
 strm__take_end_while(
         char * xs,
-        bool ( * p )( char ) );
+        bool ( * f )( char ) );
 
 
 char *
@@ -154,7 +142,128 @@ strm__drop_3(
 char *
 strm__drop_while(
         char * xs,
-        bool ( * p )( char ) );
+        bool ( * f )( char ) );
+
+
+char *
+strm__find(
+        char * xs,
+        bool ( * f )( char ) );
+
+
+char *
+strm__find_not(
+        char * xs,
+        bool ( * f )( char ) );
+
+
+char *
+strm__find_last(
+        char * xs,
+        bool ( * f )( char ) );
+
+
+char *
+strm__find_last_not(
+        char * xs,
+        bool ( * f )( char ) );
+
+
+Maybe_size
+strm__find_index(
+        char * xs,
+        bool ( * f )( char ) );
+
+
+Maybe_size
+strm__find_index_not(
+        char * xs,
+        bool ( * f )( char ) );
+
+
+Maybe_size
+strm__find_last_index(
+        char * xs,
+        bool ( * f )( char ) );
+
+
+Maybe_size
+strm__find_last_index_not(
+        char * xs,
+        bool ( * f )( char ) );
+
+
+bool
+strm__any(
+        char * xs,
+        bool ( * f )( char ) );
+
+
+bool
+strm__all(
+        char * xs,
+        bool ( * f )( char ) );
+
+
+bool
+strm__only_one(
+        char * xs,
+        bool ( * f )( char ) );
+
+
+bool
+strm__only_one_not(
+        char * xs,
+        bool ( * f )( char ) );
+
+
+char
+strm__foldl(
+        char * xs,
+        char init,
+        char ( * f )( char acc, char x ) );
+
+
+char
+strm__foldl1(
+        char * xs,
+        char ( * f )( char acc, char x ) );
+
+
+char
+strm__foldr(
+        char * xs,
+        char init,
+        char ( * f )( char x, char acc ) );
+
+
+char
+strm__foldr1(
+        char * xs,
+        char ( * f )( char x, char acc ) );
+
+
+char *
+strm__pick(
+        char * xs,
+        bool ( * f )( char const * pick, char x ) );
+
+
+struct strm__each__options {
+    bool ( * where )( char );
+    bool ( * where_not )( char );
+    void ( * f )( char );
+    void ( * e )( char );
+    bool ( * b )( char );
+};
+
+bool
+strm__each_(
+        char * const xs,
+        struct strm__each__options const o );
+
+#define strm__each( XS, ... ) \
+    strm__each_( XS, ( struct strm__each__options ){ __VA_ARGS__ } )
 
 
 bool
@@ -162,6 +271,95 @@ strm__equal_by(
         char * xs,
         char * ys,
         bool ( * eq )( char, char ) );
+
+
+bool
+strm__elem_by(
+        char * xs,
+        char y,
+        bool ( * f )( char x, char y ) );
+
+
+char *
+strm__elem_ptr_by(
+        char * xs,
+        char y,
+        bool ( * f )( char x, char y ) );
+
+
+Maybe_size
+strm__elem_index_by(
+        char * xs,
+        char y,
+        bool ( * f )( char x, char y ) );
+
+
+size_t
+strm__elem_count_by(
+        char * xs,
+        char y,
+        bool ( * f )( char x, char y ) );
+
+
+bool
+strm__infix_by(
+        char * xs,
+        char * ys,
+        bool ( * f )( char x, char y ) );
+
+
+char *
+strm__infix_ptr_by(
+        char * xs,
+        char * ys,
+        bool ( * f )( char x, char y ) );
+
+
+Maybe_size
+strm__infix_index_by(
+        char * xs,
+        char * ys,
+        bool ( * f )( char x, char y ) );
+
+
+size_t
+strm__infix_count_by(
+        char * const xs,
+        char * const ys,
+        bool ( * const f )( char x, char y ) );
+
+
+bool
+strm__is_prefix_by(
+        char * xs,
+        char * ps,
+        bool ( * f )( char x, char p ) );
+
+
+bool
+strm__is_suffix_by(
+        char * xs,
+        char * ss,
+        bool ( * f )( char x, char s ) );
+
+
+ord
+strm__compare_by(
+        char * xs,
+        char * ys,
+        ord ( * f )( char x, char y ) );
+
+
+char
+strm__minimum_by(
+        char * xs,
+        ord ( * f )( char x, char min ) );
+
+
+char
+strm__maximum_by(
+        char * xs,
+        ord ( * f )( char x, char max ) );
 
 
 bool
@@ -189,104 +387,99 @@ strm__not_equal_i(
 
 
 bool
-strm__elem_by(
-        char * xs,
-        char c,
-        bool ( * eq )( char, char ) );
-
-
-bool
 strm__elem(
         char * xs,
-        char c );
+        char y );
 
 
 bool
 strm__elem_i(
         char * xs,
-        char c );
-
-
-bool
-strm__not_elem(
-        char * xs,
-        char c );
-
-
-bool
-strm__not_elem_i(
-        char * xs,
-        char c );
-
-
-Maybe_size
-strm__elem_index_by(
-        char * xs,
-        char c,
-        bool ( * eq )( char, char ) );
-
-
-Maybe_size
-strm__elem_index(
-        char * xs,
-        char c );
-
-
-Maybe_size
-strm__elem_index_i(
-        char * xs,
-        char c );
-
-
-char *
-strm__elem_ptr_by(
-        char * xs,
-        char c,
-        bool ( * eq )( char, char ) );
+        char y );
 
 
 char *
 strm__elem_ptr(
         char * xs,
-        char c );
+        char y );
 
 
 char *
 strm__elem_ptr_i(
         char * xs,
-        char c );
+        char y );
 
 
-char *
-strm__find(
+Maybe_size
+strm__elem_index(
         char * xs,
-        bool ( * p )( char ) );
+        char y );
+
+
+Maybe_size
+strm__elem_index_i(
+        char * xs,
+        char y );
 
 
 size_t
-strm__count_elem_by(
+strm__elem_count(
         char * xs,
-        char c,
-        bool ( * eq )( char, char ) );
+        char y );
 
 
 size_t
-strm__count_elem(
+strm__elem_count_i(
         char * xs,
-        char c );
-
-
-size_t
-strm__count_elem_i(
-        char * xs,
-        char c );
+        char y );
 
 
 bool
-strm__is_prefix_by(
+strm__infix(
         char * xs,
-        char * prefix,
-        bool ( * eq )( char, char ) );
+        char * ys );
+
+
+bool
+strm__infix_i(
+        char * xs,
+        char * ys );
+
+
+char *
+strm__infix_ptr(
+        char * xs,
+        char * ys );
+
+
+char *
+strm__infix_ptr_i(
+        char * xs,
+        char * ys );
+
+
+Maybe_size
+strm__infix_index(
+        char * xs,
+        char * ys );
+
+
+Maybe_size
+strm__infix_index_i(
+        char * xs,
+        char * ys );
+
+
+size_t
+strm__infix_count(
+        char * const xs,
+        char * const ys );
+
+
+size_t
+strm__infix_count_i(
+        char * const xs,
+        char * const ys );
 
 
 bool
@@ -302,13 +495,6 @@ strm__is_prefix_i(
 
 
 bool
-strm__is_suffix_by(
-        char * xs,
-        char * suffix,
-        bool ( * eq )( char, char ) );
-
-
-bool
 strm__is_suffix(
         char * xs,
         char * suffix );
@@ -318,51 +504,6 @@ bool
 strm__is_suffix_i(
         char * xs,
         char * suffix );
-
-
-bool
-strm__is_infix_by(
-        char * xs,
-        char * ys,
-        bool ( * eq )( char, char ) );
-
-
-bool
-strm__is_infix(
-        char * xs,
-        char * ys );
-
-
-bool
-strm__is_infix_i(
-        char * xs,
-        char * ys );
-
-
-Maybe_size
-strm__index_strm_by(
-        char * xs,
-        char * ys,
-        bool ( * eq )( char, char ) );
-
-
-Maybe_size
-strm__index_strm(
-        char * xs,
-        char * ys );
-
-
-Maybe_size
-strm__index_strm_i(
-        char * xs,
-        char * ys );
-
-
-ord
-strm__compare_by(
-        char * xs,
-        char * ys,
-        ord ( * cmp )( char, char ) );
 
 
 ord
@@ -457,20 +598,8 @@ strm__in_xrange(
 
 
 char
-strm__minimum_by(
-        char * xs,
-        ord ( * cmp )( char, char ) );
-
-
-char
 strm__minimum(
         char * xs );
-
-
-char
-strm__maximum_by(
-        char * xs,
-        ord ( * cmp )( char, char ) );
 
 
 char

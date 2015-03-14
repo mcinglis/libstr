@@ -16,9 +16,13 @@ cflags_warnings := -Wall -Wextra -pedantic \
 
 CFLAGS ?= $(cflags_std) -g $(cflags_warnings)
 
+TPLRENDER ?= $(DEPS_DIR)/tplrender/tplrender
+
 sources := $(wildcard *.c)
 objects := $(sources:.c=.o)
 mkdeps  := $(sources:.c=.dep.mk)
+
+maybe_size_def := $(DEPS_DIR)/libmaybe/def/maybe-size.h
 
 
 
@@ -39,10 +43,21 @@ objects: $(objects)
 
 .PHONY: clean
 clean:
-	rm -rf $(gen_sources) $(gen_headers) $(objects) $(mkdeps)
+	rm -rf $(objects) \
+	       $(mkdeps) \
+	       $(maybe_size_def)
+
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -MMD -MF "$(@:.o=.dep.mk)" -c $< -o $@
+
+
+str.o strm.o: $(maybe_size_def)
+
+
+$(maybe_size_def): $(DEPS_DIR)/libmaybe/def.h.jinja
+	$(TPLRENDER) "$<" "size_t" --output $@
+
 
 -include $(mkdeps)
 
