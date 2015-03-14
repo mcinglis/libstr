@@ -40,7 +40,7 @@ Libstr is free software: you can redistribute it and/or modify it under the term
 
 Libstr is distributed in the hope that it will be useful, but **without any warranty**; without even the implied warranty of **merchantability** or **fitness for a particular purpose**. See the GNU Affero General Public License for more details.
 
-You should have received a copy of the GNU Affero General Public License along with Libstr If not, see <https://gnu.org/licenses/>.
+You should have received a copy of the GNU Affero General Public License along with Libstr. If not, see <https://gnu.org/licenses/>.
 
 [Contact me](mailto:me@minglis.id.au) for proprietary licensing options.
 
