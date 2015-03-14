@@ -34,7 +34,7 @@ maybe_size_def := $(DEPS_DIR)/libmaybe/def/maybe-size.h
 all: objects
 
 .PHONY: fast
-fast: CPPFLAGS += -DNDEBUG -DNO_ASSERT -DNO_REQUIRE -DNO_DEBUG
+fast: CPPFLAGS += -DNDEBUG
 fast: CFLAGS = $(cflags_std) -O3 $(cflags_warnings)
 fast: all
 
@@ -43,20 +43,15 @@ objects: $(objects)
 
 .PHONY: clean
 clean:
-	rm -rf $(objects) \
-	       $(mkdeps) \
-	       $(maybe_size_def)
-
+	rm -rf $(objects) $(mkdeps) $(maybe_size_def)
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -MMD -MF "$(@:.o=.dep.mk)" -c $< -o $@
 
-
 str.o strm.o: $(maybe_size_def)
 
-
 $(maybe_size_def): $(DEPS_DIR)/libmaybe/def.h.jinja
-	$(TPLRENDER) "$<" "size_t" --output $@
+	$(TPLRENDER) $< "size_t" -o $@
 
 
 -include $(mkdeps)
