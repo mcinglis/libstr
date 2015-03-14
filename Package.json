@@ -1,8 +1,7 @@
 {
     "dependencies": [
         { "repo": [ "https://bitbucket.org/mcinglis/tplrender.git",
-                    "https://github.com/mcinglis/tplrender.git",
-                    "https://gitorious.org/mcinglis/tplrender.git" ]
+                    "https://github.com/mcinglis/tplrender.git" ]
         },
         { "repo": [ "https://bitbucket.org/mcinglis/libtypes.git",
                     "https://github.com/mcinglis/libtypes.git",
