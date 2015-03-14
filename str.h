@@ -259,7 +259,7 @@ struct str__each__options {
 
 bool
 str__each_(
-        char const * const xs,
+        char const * xs,
         struct str__each__options const o );
 
 #define str__each( XS, ... ) \
@@ -324,9 +324,9 @@ str__infix_index_by(
 
 size_t
 str__infix_count_by(
-        char const * const xs,
-        char const * const ys,
-        bool ( * const f )( char x, char y ) );
+        char const * xs,
+        char const * ys,
+        bool ( * f )( char x, char y ) );
 
 
 bool
@@ -472,14 +472,14 @@ str__infix_index_i(
 
 size_t
 str__infix_count(
-        char const * const xs,
-        char const * const ys );
+        char const * xs,
+        char const * ys );
 
 
 size_t
 str__infix_count_i(
-        char const * const xs,
-        char const * const ys );
+        char const * xs,
+        char const * ys );
 
 
 bool

@@ -259,7 +259,7 @@ struct strm__each__options {
 
 bool
 strm__each_(
-        char * const xs,
+        char * xs,
         struct strm__each__options const o );
 
 #define strm__each( XS, ... ) \
@@ -324,9 +324,9 @@ strm__infix_index_by(
 
 size_t
 strm__infix_count_by(
-        char * const xs,
-        char * const ys,
-        bool ( * const f )( char x, char y ) );
+        char * xs,
+        char * ys,
+        bool ( * f )( char x, char y ) );
 
 
 bool
@@ -472,14 +472,14 @@ strm__infix_index_i(
 
 size_t
 strm__infix_count(
-        char * const xs,
-        char * const ys );
+        char * xs,
+        char * ys );
 
 
 size_t
 strm__infix_count_i(
-        char * const xs,
-        char * const ys );
+        char * xs,
+        char * ys );
 
 
 bool
