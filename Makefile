@@ -3,18 +3,18 @@
 ### VARIABLES
 ##############################
 
-DEPS_DIR ?= ./deps
+DEPS_DIR ?= deps
+
+LIBMAYBE := $(DEPS_DIR)/libmaybe
 
 CPPFLAGS += -I$(DEPS_DIR)
 
-cflags_std := -std=c11
-cflags_warnings := -Wall -Wextra -pedantic \
-                   -Wcomments -Wformat=2 -Wlogical-op -Wmissing-include-dirs \
-                   -Wnested-externs -Wold-style-definition -Wredundant-decls \
-                   -Wshadow -Wstrict-prototypes -Wunused-macros -Wvla \
-                   -Wwrite-strings
-
-CFLAGS ?= $(cflags_std) -g $(cflags_warnings)
+CFLAGS ?= -std=c11 -g \
+          -Wall -Wextra -pedantic \
+          -Wcomments -Wformat=2 -Wlogical-op -Wmissing-include-dirs \
+          -Wnested-externs -Wold-style-definition -Wredundant-decls \
+          -Wshadow -Wstrict-prototypes -Wunused-macros -Wvla \
+          -Wwrite-strings
 
 TPLRENDER ?= $(DEPS_DIR)/tplrender/tplrender
 
@@ -22,7 +22,7 @@ sources := $(wildcard *.c)
 objects := $(sources:.c=.o)
 mkdeps  := $(sources:.c=.dep.mk)
 
-maybe_size_def := $(DEPS_DIR)/libmaybe/def/maybe-size.h
+maybe_size_def := $(LIBMAYBE)/def/maybe-size.h
 
 
 
@@ -31,15 +31,7 @@ maybe_size_def := $(DEPS_DIR)/libmaybe/def/maybe-size.h
 ##############################
 
 .PHONY: all
-all: objects
-
-.PHONY: fast
-fast: CPPFLAGS += -DNDEBUG
-fast: CFLAGS = $(cflags_std) -O3 $(cflags_warnings)
-fast: all
-
-.PHONY: objects
-objects: $(objects)
+all: $(objects)
 
 .PHONY: clean
 clean:
@@ -50,7 +42,7 @@ clean:
 
 str.o strm.o: $(maybe_size_def)
 
-$(maybe_size_def): $(DEPS_DIR)/libmaybe/def.h.jinja
+$(maybe_size_def): $(LIBMAYBE)/def.h.jinja
 	$(TPLRENDER) $< "size_t" -o $@
 
 

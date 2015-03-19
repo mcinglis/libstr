@@ -20,6 +20,10 @@ $ puck execute build
 
 There's nothing magic to what Puck does, so if you would prefer, you can set up the dependencies manually. You just need to have the dependencies in the `deps` directory within the Libstr directory, and have them built (if necessary) before building Libstr.
 
+There is no `build` command specified for Libstr, because you should manage the building of Libstr's sources in your own project. Because the sources depend on `Maybe_size` generated from Libmaybe, you would want to have that process integrated with the rest of your project.
+
+Despite this, there is a `Makefile` provided with the bare minimum to build to the object files. This is primarly to aid in development; checking that the code can actually compile.
+
 
 ## Collaboration
 

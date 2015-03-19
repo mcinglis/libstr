@@ -270,7 +270,7 @@ bool
 str__equal_by(
         char const * xs,
         char const * ys,
-        bool ( * eq )( char, char ) );
+        bool ( * f )( char x, char y ) );
 
 
 bool
