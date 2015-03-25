@@ -1029,9 +1029,9 @@ strm__max_n(
 
 char *
 strm__clamp(
+        char * const xs,
         char * const lower,
-        char * const upper,
-        char * const xs )
+        char * const upper );
 {
     ASSERT( lower != NULL, upper != NULL, xs != NULL );
 

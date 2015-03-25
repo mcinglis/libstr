@@ -578,9 +578,9 @@ strm__max_n(
 
 char *
 strm__clamp(
+        char * xs,
         char * lower,
-        char * upper,
-        char * xs );
+        char * upper );
 
 
 bool

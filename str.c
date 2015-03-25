@@ -1238,9 +1238,9 @@ str__max_n(
 
 char const *
 str__clamp(
+        char const * const xs,
         char const * const lower,
-        char const * const upper,
-        char const * const xs )
+        char const * const upper )
 {
     ASSERT( lower != NULL, upper != NULL, xs != NULL );
 
