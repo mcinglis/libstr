@@ -19,6 +19,7 @@
 
 #include "strm.h"
 
+#include <stdlib.h>
 #include <ctype.h>
 
 #include <libtypes/types.h>
@@ -46,6 +47,26 @@ char_equal_i( char const x,
 }
 
 
+
+char *
+strm__copy_str(
+        char const * const xs )
+{
+    ASSERT( xs != NULL );
+
+    size_t const n = str__size( xs );
+    char * const strm = malloc( n );
+    str__copy_into_strm( xs, strm, n );
+    return strm;
+}
+
+
+char *
+strm__copy_strm(
+        char * const xs )
+{
+    return strm__copy_str( xs );
+}
 
 
 char *
@@ -1031,7 +1052,7 @@ char *
 strm__clamp(
         char * const xs,
         char * const lower,
-        char * const upper );
+        char * const upper )
 {
     ASSERT( lower != NULL, upper != NULL, xs != NULL );
 
@@ -1082,6 +1103,28 @@ strm__maximum(
     ASSERT( xs != NULL );
 
     return str__maximum( xs );
+}
+
+
+char *
+strm__from_str( char const * const xs )
+{
+    ASSERT( xs != NULL );
+
+    return strm__copy_str( xs );
+}
+
+
+void
+strm__arg_parse(
+        char const * const name,
+        char const * const value,
+        void * const vdest )
+{
+    ASSERT( value != NULL, vdest != NULL );
+
+    char * * const dest = vdest;
+    *dest = strm__from_str( value );
 }
 
 

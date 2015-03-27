@@ -65,6 +65,21 @@ char_equal_i( char const x,
 
 
 
+void
+str__copy_into_strm(
+        char const * const from,
+        char * const to,
+        size_t const n )
+{
+    ASSERT( from != NULL, to != NULL );
+
+    if ( n == 0 ) { return; }
+    for ( size_t i = 0; i < ( n - 1 ); i++ ) {
+        to[ i ] = from[ i ];
+    }
+    to[ n - 1 ] = '\0';
+}
+
 
 char const *
 str__id(
@@ -1297,5 +1312,26 @@ str__maximum(
     ASSERT( xs != NULL );
 
     return str__maximum_by( xs, char_compare );
+}
+
+
+char const *
+str__from_str(
+        char const * const xs )
+{
+    return xs;
+}
+
+
+void
+str__arg_parse(
+        char const * const name,
+        char const * const value,
+        void * const vdest )
+{
+    ASSERT( value != NULL, vdest != NULL );
+
+    char const * * const dest = vdest;
+    *dest = value;
 }
 

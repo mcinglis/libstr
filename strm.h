@@ -27,6 +27,16 @@
 
 
 char *
+strm__copy_str(
+        char const * const xs );
+
+
+char *
+strm__copy_strm(
+        char * const xs );
+
+
+char *
 strm__id(
         char * xs );
 
@@ -605,6 +615,17 @@ strm__minimum(
 char
 strm__maximum(
         char * xs );
+
+
+char *
+strm__from_str( char const * xs );
+
+
+void
+strm__arg_parse(
+        char const * name,
+        char const * value,
+        void * destination );
 
 
 #endif // ifndef LIBSTR_STRM_H

@@ -26,6 +26,13 @@
 #include <libmaybe/def/maybe-size.h>
 
 
+void
+str__copy_into_strm(
+        char const * from,
+        char * to,
+        size_t n );
+
+
 char const *
 str__id(
         char const * xs );
@@ -605,6 +612,18 @@ str__minimum(
 char
 str__maximum(
         char const * xs );
+
+
+char const *
+str__from_str(
+        char const * xs );
+
+
+void
+str__arg_parse(
+        char const * name,
+        char const * value,
+        void * vdest );
 
 
 #endif // ifndef LIBSTR_STR_H
