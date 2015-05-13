@@ -22,7 +22,6 @@
         }
     ],
     "commands": {
-        "fast":  "make fast",
         "clean": "make clean"
     }
 }

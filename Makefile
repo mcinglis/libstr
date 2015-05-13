@@ -23,7 +23,7 @@ sources := $(wildcard *.c)
 objects := $(sources:.c=.o)
 mkdeps  := $(sources:.c=.dep.mk)
 
-maybe_size_def := $(LIBMAYBE)/def/maybe-size.h
+maybe_size_def := $(LIBMAYBE)/def/maybe_size.h
 
 
 

@@ -23,7 +23,7 @@
 
 #include <libtypes/types.h>
 #include <libmacro/nelem.h>
-#include <libmaybe/def/maybe-size.h>
+#include <libmaybe/def/maybe_size.h>
 
 
 char *
