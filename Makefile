@@ -5,8 +5,6 @@
 
 DEPS_DIR ?= deps
 
-LIBMAYBE := $(DEPS_DIR)/libmaybe
-
 CPPFLAGS += -I$(DEPS_DIR)
 
 CFLAGS ?= -std=c11 -g \
@@ -17,13 +15,9 @@ CFLAGS ?= -std=c11 -g \
           -Wwrite-strings \
           -Wno-unused-parameter
 
-TPLRENDER ?= $(DEPS_DIR)/tplrender/tplrender
-
 sources := $(wildcard *.c)
 objects := $(sources:.c=.o)
 mkdeps  := $(sources:.c=.dep.mk)
-
-maybe_size_def := $(LIBMAYBE)/def/maybe_size.h
 
 
 
@@ -34,17 +28,14 @@ maybe_size_def := $(LIBMAYBE)/def/maybe_size.h
 .PHONY: all
 all: $(objects)
 
+
 .PHONY: clean
 clean:
 	rm -rf $(objects) $(mkdeps) $(maybe_size_def)
 
+
 %.o: %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -MMD -MF "$(@:.o=.dep.mk)" -c $< -o $@
-
-str.o strm.o: $(maybe_size_def)
-
-$(maybe_size_def): $(LIBMAYBE)/def.h.jinja
-	$(TPLRENDER) $< "size_t" -o $@
 
 
 -include $(mkdeps)

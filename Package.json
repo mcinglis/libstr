@@ -9,16 +9,6 @@
                     "https://github.com/mcinglis/libmacro.git",
                     "https://gitorious.org/mcinglis/libmacro.git" ],
           "tag":  "v2.*"
-        },
-        { "repo": [ "https://bitbucket.org/mcinglis/libmaybe.git",
-                    "https://github.com/mcinglis/libmaybe.git",
-                    "https://gitorious.org/mcinglis/libmaybe.git" ],
-          "tag":  "v1.*"
-        },
-        { "dev":  true,
-          "repo": [ "https://bitbucket.org/mcinglis/tplrender.git",
-                    "https://github.com/mcinglis/tplrender.git" ],
-          "tag":  "v1.*"
         }
     ],
     "commands": {
