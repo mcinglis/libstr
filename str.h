@@ -116,5 +116,10 @@ str__is_null(
         char const * );
 
 
+char const *
+str__from_str(
+        char const * );
+
+
 #endif // ifndef LIBSTR_STR_H
 

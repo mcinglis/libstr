@@ -231,3 +231,11 @@ str__is_null(
     return xs == NULL;
 }
 
+
+char const *
+str__from_str(
+        char const * const str )
+{
+    return str;
+}
+
