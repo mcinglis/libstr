@@ -116,5 +116,15 @@ str__compare_i(
         char const * ys );
 
 
+char const *
+str__null(
+        void );
+
+
+bool
+str__is_null(
+        char const * );
+
+
 #endif // ifndef LIBSTR_STR_H
 

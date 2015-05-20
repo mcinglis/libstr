@@ -244,3 +244,19 @@ str__compare_i(
     return str__compare_by( xs, ys, char_compare_i );
 }
 
+
+char const *
+str__null(
+        void )
+{
+    return NULL;
+}
+
+
+bool
+str__is_null(
+        char const * const xs )
+{
+    return xs == NULL;
+}
+
