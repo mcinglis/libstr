@@ -12,6 +12,7 @@
         }
     ],
     "commands": {
+        "build": "make",
         "clean": "make clean"
     }
 }
