@@ -77,9 +77,7 @@ str__copy_into_strm(
         char * const to,
         size_t const n )
 {
-    ASSERT( from != NULL, to != NULL );
-
-    if ( n == 0 ) { return; }
+    if ( from == NULL || to == NULL || n == 0 ) { return; }
     for ( size_t i = 0; i < ( n - 1 ); i++ ) {
         to[ i ] = from[ i ];
     }
@@ -91,8 +89,7 @@ size_t
 str__length(
         char const * const xs )
 {
-    ASSERT( xs != NULL );
-
+    if ( xs == NULL ) { return 0; }
     size_t len = 0;
     while ( xs[ len ] != '\0' ) {
         len++;
@@ -102,29 +99,7 @@ str__length(
 
 
 size_t
-str__length_null(
-        char const * const xs )
-{
-    if ( xs == NULL ) {
-        return 0;
-    } else {
-        return str__length( xs );
-    }
-}
-
-
-size_t
 str__size(
-        char const * const xs )
-{
-    ASSERT( xs != NULL );
-
-    return str__length( xs ) + 1;
-}
-
-
-size_t
-str__size_null(
         char const * const xs )
 {
     if ( xs == NULL ) {
@@ -139,8 +114,6 @@ bool
 str__is_empty(
         char const * const xs )
 {
-    ASSERT( xs != NULL );
-
     return str__length( xs ) == 0;
 }
 
@@ -149,8 +122,6 @@ bool
 str__isnt_empty(
         char const * const xs )
 {
-    ASSERT( xs != NULL );
-
     return !str__is_empty( xs );
 }
 
@@ -159,8 +130,6 @@ bool
 str__is_length_1(
         char const * const xs )
 {
-    ASSERT( xs != NULL );
-
     return str__length( xs ) == 1;
 }
 
@@ -171,15 +140,20 @@ str__equal_by(
         char const * const ys,
         bool ( * const eq )( char x, char y ) )
 {
-    ASSERT( xs != NULL, ys != NULL, eq != NULL );
-
-    size_t i = 0;
-    bool b;
-    while ( b = eq( xs[ i ], ys[ i ] ),
-            b == true && xs[ i ] != '\0' && ys[ i ] != '\0' ) {
-        i++;
+    if ( xs == NULL && ys == NULL ) {
+        return true;
+    } else if ( xs != NULL && ys != NULL ) {
+        ASSERT( eq != NULL );
+        size_t i = 0;
+        bool b;
+        while ( b = eq( xs[ i ], ys[ i ] ),
+                b == true && xs[ i ] != '\0' && ys[ i ] != '\0' ) {
+            i++;
+        }
+        return b;
+    } else {
+        return false;
     }
-    return b;
 }
 
 
@@ -189,15 +163,20 @@ str__compare_by(
         char const * const ys,
         ord ( * const cmp )( char x, char y ) )
 {
-    ASSERT( xs != NULL, ys != NULL, cmp != NULL );
-
-    size_t i = 0;
-    ord r;
-    while ( r = cmp( xs[ i ], ys[ i ] ),
-            r == EQ && xs[ i ] != '\0' && ys[ i ] != '\0' ) {
-        i++;
+    if ( xs == NULL && ys == NULL ) {
+        return EQ;
+    } else if ( xs != NULL && ys != NULL ) {
+        ASSERT( cmp != NULL );
+        size_t i = 0;
+        ord r;
+        while ( r = cmp( xs[ i ], ys[ i ] ),
+                r == EQ && xs[ i ] != '\0' && ys[ i ] != '\0' ) {
+            i++;
+        }
+        return r;
+    } else {
+        return COMPARE( xs != NULL, ys != NULL );
     }
-    return r;
 }
 
 
@@ -206,8 +185,6 @@ str__equal(
         char const * const xs,
         char const * const ys )
 {
-    ASSERT( xs != NULL, ys != NULL );
-
     return str__equal_by( xs, ys, char_equal );
 }
 
@@ -217,8 +194,6 @@ str__equal_i(
         char const * const xs,
         char const * const ys )
 {
-    ASSERT( xs != NULL, ys != NULL );
-
     return str__equal_by( xs, ys, char_equal_i );
 }
 
@@ -228,8 +203,6 @@ str__compare(
         char const * const xs,
         char const * const ys )
 {
-    ASSERT( xs != NULL, ys != NULL );
-
     return str__compare_by( xs, ys, char_compare );
 }
 
@@ -239,8 +212,6 @@ str__compare_i(
         char const * const xs,
         char const * const ys )
 {
-    ASSERT( xs != NULL, ys != NULL );
-
     return str__compare_by( xs, ys, char_compare_i );
 }
 

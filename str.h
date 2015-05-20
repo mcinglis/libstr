@@ -37,17 +37,7 @@ str__length(
 
 
 size_t
-str__length_null(
-        char const * xs );
-
-
-size_t
 str__size(
-        char const * xs );
-
-
-size_t
-str__size_null(
         char const * xs );
 
 
