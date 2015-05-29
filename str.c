@@ -105,8 +105,24 @@ str__size(
     if ( xs == NULL ) {
         return 0;
     } else {
-        return str__size( xs );
+        return str__length( xs ) + 1;
     }
+}
+
+
+char const *
+str__null(
+        void )
+{
+    return NULL;
+}
+
+
+bool
+str__is_null(
+        char const * const xs )
+{
+    return xs == NULL;
 }
 
 
@@ -114,7 +130,7 @@ bool
 str__is_empty(
         char const * const xs )
 {
-    return str__length( xs ) == 0;
+    return str__length( xs ) <= 1;
 }
 
 
@@ -123,14 +139,6 @@ str__isnt_empty(
         char const * const xs )
 {
     return !str__is_empty( xs );
-}
-
-
-bool
-str__is_length_1(
-        char const * const xs )
-{
-    return str__length( xs ) == 1;
 }
 
 
@@ -213,22 +221,6 @@ str__compare_i(
         char const * const ys )
 {
     return str__compare_by( xs, ys, char_compare_i );
-}
-
-
-char const *
-str__null(
-        void )
-{
-    return NULL;
-}
-
-
-bool
-str__is_null(
-        char const * const xs )
-{
-    return xs == NULL;
 }
 
 

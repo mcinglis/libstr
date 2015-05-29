@@ -28,11 +28,9 @@ mkdeps  := $(sources:.c=.dep.mk)
 .PHONY: all
 all: $(objects)
 
-
 .PHONY: clean
 clean:
 	rm -rf $(objects) $(mkdeps) $(maybe_size_def)
-
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -MMD -MF "$(@:.o=.dep.mk)" -c $< -o $@

@@ -41,6 +41,16 @@ str__size(
         char const * xs );
 
 
+char const *
+str__null(
+        void );
+
+
+bool
+str__is_null(
+        char const * );
+
+
 bool
 str__is_empty(
         char const * xs );
@@ -48,11 +58,6 @@ str__is_empty(
 
 bool
 str__isnt_empty(
-        char const * xs );
-
-
-bool
-str__is_length_1(
         char const * xs );
 
 
@@ -104,16 +109,6 @@ ord
 str__compare_i(
         char const * xs,
         char const * ys );
-
-
-char const *
-str__null(
-        void );
-
-
-bool
-str__is_null(
-        char const * );
 
 
 char const *
