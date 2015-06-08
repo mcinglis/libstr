@@ -116,5 +116,12 @@ str__from_str(
         char const * );
 
 
+void
+str__arg_parse(
+        char const * const name,
+        char const * const arg,
+        void * const vdest );
+
+
 #endif // ifndef LIBSTR_STR_H
 

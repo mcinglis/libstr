@@ -25,11 +25,27 @@
 #include <libmacro/assert.h>
 
 
+char *
+strm__null(
+        void )
+{
+    return NULL;
+}
+
+
+bool
+strm__is_null(
+        char * const xs )
+{
+    return xs == NULL;
+}
+
+
 bool
 strm__is_empty(
         char * const xs )
 {
-    return str__length( xs ) == 0;
+    return str__is_empty( xs );
 }
 
 
@@ -37,15 +53,7 @@ bool
 strm__isnt_empty(
         char * const xs )
 {
-    return !str__is_empty( xs );
-}
-
-
-bool
-strm__is_length_1(
-        char * const xs )
-{
-    return str__length( xs ) == 1;
+    return str__isnt_empty( xs );
 }
 
 
@@ -67,6 +75,24 @@ strm__equal_i(
 }
 
 
+bool
+strm__not_equal(
+        char * const xs,
+        char * const ys )
+{
+    return str__not_equal( xs, ys );
+}
+
+
+bool
+strm__not_equal_i(
+        char * const xs,
+        char * const ys )
+{
+    return str__not_equal_i( xs, ys );
+}
+
+
 ord
 strm__compare(
         char * const xs,
@@ -82,22 +108,6 @@ strm__compare_i(
         char * const ys )
 {
     return str__compare_i( xs, ys );
-}
-
-
-char *
-strm__null(
-        void )
-{
-    return NULL;
-}
-
-
-bool
-strm__is_null(
-        char * const xs )
-{
-    return xs == NULL;
 }
 
 

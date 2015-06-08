@@ -29,6 +29,16 @@
 // "char *".
 
 
+char *
+strm__null(
+        void );
+
+
+bool
+strm__is_null(
+        char * );
+
+
 bool
 strm__is_empty(
         char * xs );
@@ -36,11 +46,6 @@ strm__is_empty(
 
 bool
 strm__isnt_empty(
-        char * xs );
-
-
-bool
-strm__is_length_1(
         char * xs );
 
 
@@ -58,8 +63,8 @@ strm__equal_i(
 
 bool
 strm__not_equal(
-        char * x,
-        char * y );
+        char * xs,
+        char * ys );
 
 
 bool
@@ -78,16 +83,6 @@ ord
 strm__compare_i(
         char * xs,
         char * ys );
-
-
-char *
-strm__null(
-        void );
-
-
-bool
-strm__is_null(
-        char * );
 
 
 #endif // ifndef LIBSTR_STRM_H

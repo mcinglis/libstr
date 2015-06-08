@@ -20,6 +20,7 @@
 #include "str.h"
 
 #include <ctype.h>
+#include <errno.h>
 
 #include <libtypes/types.h>
 #include <libmacro/assert.h>
@@ -130,7 +131,7 @@ bool
 str__is_empty(
         char const * const xs )
 {
-    return str__length( xs ) <= 1;
+    return str__length( xs ) != 0;
 }
 
 
@@ -206,6 +207,24 @@ str__equal_i(
 }
 
 
+bool
+str__not_equal(
+        char const * const xs,
+        char const * const ys )
+{
+    return !str__equal( xs, ys );
+}
+
+
+bool
+str__not_equal_i(
+        char const * const xs,
+        char const * const ys )
+{
+    return !str__equal( xs, ys );
+}
+
+
 ord
 str__compare(
         char const * const xs,
@@ -229,5 +248,20 @@ str__from_str(
         char const * const str )
 {
     return str;
+}
+
+
+void
+str__arg_parse(
+        char const * const name,
+        char const * const arg,
+        void * const vdest )
+{
+    ASSERT( arg != NULL );
+
+    errno = 0;
+    if ( vdest == NULL ) { return; }
+    char const * * const dest = vdest;
+    *dest = arg;
 }
 
