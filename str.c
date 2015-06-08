@@ -131,7 +131,7 @@ bool
 str__is_empty(
         char const * const xs )
 {
-    return str__length( xs ) != 0;
+    return str__length( xs ) == 0;
 }
 
 
