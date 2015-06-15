@@ -61,10 +61,43 @@ str__isnt_empty(
         char const * xs );
 
 
+char const *
+str__drop(
+        char const * xs,
+        size_t n );
+
+
+char const *
+str__take_end(
+        char const * xs,
+        size_t n );
+
+
 bool
 str__equal_by(
         char const * xs,
         char const * ys,
+        bool ( * eq )( char x, char y ) );
+
+
+bool
+str__has_prefix_by(
+        char const * xs,
+        char const * prefix,
+        bool ( * eq )( char x, char y ) );
+
+
+bool
+str__has_suffix_by(
+        char const * xs,
+        char const * suffix,
+        bool ( * eq )( char x, char y ) );
+
+
+bool
+str__has_infix_by(
+        char const * xs,
+        char const * infix,
         bool ( * eq )( char x, char y ) );
 
 
@@ -97,6 +130,42 @@ bool
 str__not_equal_i(
         char const * xs,
         char const * ys );
+
+
+bool
+str__has_prefix(
+        char const * xs,
+        char const * prefix );
+
+
+bool
+str__has_prefix_i(
+        char const * xs,
+        char const * prefix );
+
+
+bool
+str__has_suffix(
+        char const * xs,
+        char const * suffix );
+
+
+bool
+str__has_suffix_i(
+        char const * xs,
+        char const * suffix );
+
+
+bool
+str__has_infix(
+        char const * xs,
+        char const * infix );
+
+
+bool
+str__has_infix_i(
+        char const * xs,
+        char const * infix );
 
 
 ord

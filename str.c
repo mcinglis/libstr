@@ -143,26 +143,118 @@ str__isnt_empty(
 }
 
 
+char const *
+str__drop(
+        char const * const xs,
+        size_t const n )
+{
+    if ( str__length( xs ) == 0 ) {
+        return xs;
+    } else {
+        return xs + n;
+    }
+}
+
+
+char const *
+str__take_end(
+        char const * const xs,
+        size_t const n )
+{
+    if ( n == 0 ) {
+        return NULL;
+    } else {
+        size_t const len = str__length( xs );
+        if ( n <= len ) {
+            return xs + len - n;
+        } else {
+            return xs;
+        }
+    }
+}
+
+
 bool
 str__equal_by(
         char const * const xs,
         char const * const ys,
         bool ( * const eq )( char x, char y ) )
 {
+    ASSERT( eq != NULL );
+
     if ( xs == NULL && ys == NULL ) {
         return true;
     } else if ( xs != NULL && ys != NULL ) {
-        ASSERT( eq != NULL );
-        size_t i = 0;
-        bool b;
-        while ( b = eq( xs[ i ], ys[ i ] ),
-                b == true && xs[ i ] != '\0' && ys[ i ] != '\0' ) {
-            i++;
+        if ( xs == ys ) { return true; }
+        size_t const xs_len = str__length( xs );
+        size_t const ys_len = str__length( ys );
+        if ( xs_len != ys_len ) { return false; }
+        for ( size_t i = 0; i < xs_len; i++ ) {
+            if ( !eq( xs[ i ], ys[ i ] ) ) {
+                return false;
+            }
         }
-        return b;
+        return true;
     } else {
         return false;
     }
+}
+
+
+bool
+str__has_prefix_by(
+        char const * const xs,
+        char const * const prefix,
+        bool ( * const eq )( char x, char y ) )
+{
+    ASSERT( eq != NULL );
+
+    if ( prefix == NULL ) {
+        return true;
+    } else if ( xs == NULL ) {
+        return false;
+    } else { // xs != NULL && prefix != NULL
+        if ( xs == prefix ) { return true; }
+        size_t const xs_len = str__length( xs );
+        size_t const prefix_len = str__length( prefix );
+        if ( prefix_len > xs_len ) { return false; }
+        for ( size_t i = 0; i < prefix_len; i++ ) {
+            if ( !eq( xs[ i ], prefix[ i ] ) ) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+
+bool
+str__has_suffix_by(
+        char const * const xs,
+        char const * const suffix,
+        bool ( * const eq )( char x, char y ) )
+{
+    ASSERT( eq != NULL );
+
+    return str__equal_by( str__take_end( xs, str__length( suffix ) ), suffix,
+                          eq );
+}
+
+
+bool
+str__has_infix_by(
+        char const * const xs,
+        char const * const infix,
+        bool ( * const eq )( char x, char y ) )
+{
+    ASSERT( eq != NULL );
+
+    for ( size_t i = 0; i < str__length( xs ); i++ ) {
+        if ( str__has_prefix_by( str__drop( xs, i ), infix, eq ) ) {
+            return true;
+        }
+    }
+    return false;
 }
 
 
@@ -222,6 +314,60 @@ str__not_equal_i(
         char const * const ys )
 {
     return !str__equal( xs, ys );
+}
+
+
+bool
+str__has_prefix(
+        char const * const xs,
+        char const * const prefix )
+{
+    return str__has_prefix_by( xs, prefix, char_equal );
+}
+
+
+bool
+str__has_prefix_i(
+        char const * const xs,
+        char const * const prefix )
+{
+    return str__has_prefix_by( xs, prefix, char_equal );
+}
+
+
+bool
+str__has_suffix(
+        char const * const xs,
+        char const * const suffix )
+{
+    return str__has_suffix_by( xs, suffix, char_equal );
+}
+
+
+bool
+str__has_suffix_i(
+        char const * const xs,
+        char const * const suffix )
+{
+    return str__has_suffix_by( xs, suffix, char_equal );
+}
+
+
+bool
+str__has_infix(
+        char const * const xs,
+        char const * const infix )
+{
+    return str__has_infix_by( xs, infix, char_equal );
+}
+
+
+bool
+str__has_infix_i(
+        char const * const xs,
+        char const * const infix )
+{
+    return str__has_infix_by( xs, infix, char_equal );
 }
 
 
